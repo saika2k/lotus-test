@@ -58,7 +58,6 @@ To build Lotus, you need a working installation of [Go 1.18.1 or higher](https:/
 wget -c https://golang.org/dl/go1.18.1.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
 ```
 
-{{< alert icon="tip">}}
 You'll need to add `/usr/local/go/bin` to your path. For most Linux distributions you can run something like:
 
 ```shell
@@ -66,7 +65,6 @@ echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc && source ~/.bashrc
 ```
 
 See the [official Golang installation instructions](https://golang.org/doc/install) if you get stuck.
-{{< /alert >}}
 
 ### MacOS
 
@@ -88,14 +86,11 @@ This should output something like:
 
 If this command returns a path, then you have Xcode already installed! You can [move on to installing dependencies with Homebrew](#homebrew).
 
-   {{< alert icon="warning">}}
    If the above command doesn't return a path, install Xcode:
 
    ```shell
    xcode-select --install
    ```
-
-   {{< /alert >}}
 
 Next up is installing Lotus dependencies using Homebrew.
 
@@ -155,8 +150,6 @@ Local-nets use slightly different binaries to those used in the Filecoin mainnet
     The `filecoin-project/lotus` repository is the same one that you would use to join the Filecoin mainnet. The `git clone` command puts the Lotus repository into the `lotus-local-net` folder to keep this guide organized.
 
 3. Remove any existing repositories.
-
-    <!-- TODO: test if this section is necessary. -->
 
     ```shell
     rm -rf ~/.genesis-sectors
