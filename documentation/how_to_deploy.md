@@ -230,17 +230,7 @@ Now that you've got everything setup, you can start the `lotus` and `lotus-miner
 
     This command will output a lot of information and continue to run. All further steps should be completed in a new terminal window.
 
-2. Create a new terminal window or tab and re-export the `LOTUS_PATH` and `LOTUS_MINER_PATH` variables:
-
-    ```shell
-    export LOTUS_PATH=~/.lotus-local-net
-    export LOTUS_MINER_PATH=~/.lotus-miner-local-net
-    export LOTUS_SKIP_GENESIS_CHECK=_yes_
-    export CGO_CFLAGS_ALLOW="-D__BLST_PORTABLE__"
-    export CGO_CFLAGS="-D__BLST_PORTABLE__"
-    ```
-
-3. Import the genesis miner key:
+2. Import the genesis miner key:
 
     ```shell
     ./lotus wallet import --as-default ~/.genesis-sectors/pre-seal-t01000.key
@@ -252,7 +242,7 @@ Now that you've got everything setup, you can start the `lotus` and `lotus-miner
     imported key t3xe5je75lkrvye32tfl37gug3az42iotuu3wxgkrhbpbvmum4lu26begiw74ju5a35nveqaw4ywdibj4y6kxq successfully!
     ```
 
-4. Set up the genesis miner. This process can take a few minutes:
+3. Set up the genesis miner. This process can take a few minutes:
 
     ```shell
     ./lotus-miner init --genesis-miner --actor=t01000 --sector-size=8MiB --pre-sealed-sectors=~/.genesis-sectors --pre-sealed-metadata=~/.genesis-sectors/pre-seal-t01000.json --nosync
@@ -264,7 +254,7 @@ Now that you've got everything setup, you can start the `lotus` and `lotus-miner
     Miner successfully created, you can now start it with 'lotus-miner run'
     ```
 
-5. Start the miner:
+4. Start the miner:
 
     ```shell
     ./lotus-miner run --nosync
