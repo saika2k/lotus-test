@@ -60,6 +60,13 @@ wget -c https://golang.org/dl/go1.18.1.linux-amd64.tar.gz -O - | sudo tar -xz -C
 
 You'll need to add `/usr/local/go/bin` to your path. For most Linux distributions you can run something like:
 
+Common `go env`s needed are:
+
+```shell
+go env -w GO111MODULE=on
+go env -w GOPROXY=https://goproxy.cn,direct
+```
+
 ```shell
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc && source ~/.bashrc
 ```
@@ -138,6 +145,7 @@ Local-nets use slightly different binaries to those used in the Filecoin mainnet
     export LOTUS_SKIP_GENESIS_CHECK=_yes_
     export CGO_CFLAGS_ALLOW="-D__BLST_PORTABLE__"
     export CGO_CFLAGS="-D__BLST_PORTABLE__"
+    export IPFS_GATEWAY=https://proof-parameters.s3.cn-south-1.jdcloud-oss.com/ipfs/
     ```
 
 2. Clone Lotus repo:
