@@ -2,11 +2,17 @@ package dyaic
 
 import (
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 )
 
-func Copy(from, to string) {
+func countSubDirectories(loc string) int {
+	files, _ := ioutil.ReadDir(loc)
+	return len(files)
+}
+
+func copy(from, to string) {
 	src, err := os.Open(from)
 	if err != nil {
 		log.Panic(err)
@@ -23,8 +29,8 @@ func Copy(from, to string) {
 	}
 }
 
-// Exist uses err returned from os.Stat to determine if a file/folder exists
-func Exist(err error) bool {
+// exist uses err returned from os.Stat to determine if a file/folder exists
+func exist(err error) bool {
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false

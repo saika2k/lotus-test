@@ -22,7 +22,7 @@ func DyaicCommit(loc string, bs bool) {
 		repoLoc := RepoLocation + rLoc
 		repoInfo, err := os.Stat(repoLoc)
 
-		if Exist(err) {
+		if exist(err) {
 			if info.IsDir() {
 				return nil
 			}
@@ -30,11 +30,11 @@ func DyaicCommit(loc string, bs bool) {
 				fmt.Println("File has been modified:", rLoc)
 				patchName := repoLoc + ".patch"
 				if bs {
-					GenBSPatch(repoLoc, path, patchName)
-					BSPatch(repoLoc, repoLoc, patchName, true)
+					genBSPatch(repoLoc, path, patchName)
+					bsPatch(repoLoc, repoLoc, patchName, true)
 				} else {
-					GenPatch(repoLoc, path, patchName)
-					Patch(repoLoc, repoLoc, patchName, true)
+					genPatch(repoLoc, path, patchName)
+					patch(repoLoc, repoLoc, patchName, true)
 				}
 				fmt.Println("Updated.")
 				// TODO: send changes tx
@@ -49,7 +49,7 @@ func DyaicCommit(loc string, bs bool) {
 				}
 			} else {
 				fmt.Println("New file:", rLoc)
-				Copy(path, repoLoc)
+				copy(path, repoLoc)
 				fmt.Println("Copied.")
 				// TODO: send file tx
 				// TODO: sync file with other nodes
@@ -78,11 +78,14 @@ func DyaicGitwalker() {
 		log.Panic(err)
 	}
 	gitwalkerDir := homedir + "/.gitwalker/"
-	for d := 1; ; d++ {
+	patchesDir := homedir + "/.dyaic/patches/"
+	versionNumber := countSubDirectories(gitwalkerDir)
+	for d := 1; d < versionNumber; d++ {
 		newDir := gitwalkerDir + fmt.Sprintf("%04d", d)
 		oldDir := gitwalkerDir + fmt.Sprintf("%04d", d+1)
+		patchName := patchesDir + fmt.Sprintf("%04d%04d.patch", d+1, d)
 		fmt.Printf("Start Patching %04d~%04d\n", d+1, d)
-		GenPatchForDirectory(oldDir, newDir)
+		genPatchForDirectory(oldDir, newDir, patchName)
 	}
 }
 
@@ -99,7 +102,7 @@ func DyaicPatch(loc string, bs bool) {
 		repoLoc := RepoLocation + rLoc
 		//repoInfo, err := os.Stat(repoLoc)
 
-		if Exist(err) {
+		if exist(err) {
 			if info.IsDir() {
 				return nil
 			}
@@ -107,9 +110,9 @@ func DyaicPatch(loc string, bs bool) {
 				fmt.Println("File has been modified:", rLoc, ", file size: ", info.Size())
 				patchName := repoLoc + ".patch"
 				if bs {
-					GenBSPatch(repoLoc, path, patchName)
+					genBSPatch(repoLoc, path, patchName)
 				} else {
-					GenPatch(repoLoc, path, patchName)
+					genPatch(repoLoc, path, patchName)
 				}
 				fmt.Println("Generated patch file ", repoLoc, ".patch")
 			}
@@ -140,7 +143,7 @@ func DyaicPrintDiff(loc string) {
 		repoLoc := RepoLocation + rLoc
 		repoInfo, err := os.Stat(repoLoc)
 
-		if Exist(err) {
+		if exist(err) {
 			if info.IsDir() {
 				return nil
 			}
@@ -179,7 +182,7 @@ func saveDiff(loc string) {
 		repoLoc := RepoLocation + rLoc
 		repoInfo, err := os.Stat(repoLoc)
 
-		if Exist(err) {
+		if exist(err) {
 			if info.IsDir() {
 				return nil
 			}
