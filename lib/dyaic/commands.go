@@ -82,9 +82,9 @@ func DyaicGitwalker() {
 	versionNumber := countSubDirectories(gitwalkerDir)
 	for d := 1; d < versionNumber; d++ {
 		newDir := gitwalkerDir + fmt.Sprintf("%04d", d)
-		oldDir := gitwalkerDir + fmt.Sprintf("%04d", d+1)
-		patchName := patchesDir + fmt.Sprintf("%04d%04d.patch", d+1, d)
-		fmt.Printf("Start Patching %04d~%04d\n", d+1, d)
+		oldDir := gitwalkerDir + fmt.Sprintf("%04d", d-1)
+		patchName := patchesDir + fmt.Sprintf("%04d%04d.patch", d-1, d)
+		fmt.Printf("Start Patching %04d~%04d\n", d-1, d)
 		genPatchForDirectory(oldDir, newDir, patchName)
 	}
 }
