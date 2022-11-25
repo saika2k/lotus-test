@@ -89,6 +89,23 @@ func DyaicGitwalker() {
 	}
 }
 
+// DyaicPatchGitwalker applies patches at ~/.dyaic/patches/ to repo versions at ~/.gitwalker/
+func DyaicPatchGitwalker(bs bool) {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		log.Panic(err)
+	}
+	gitwalkerDir := homedir + "/.gitwalker/"
+	patchesDir := homedir + "/.dyaic/patches/"
+	versionNumber := countSubDirectories(gitwalkerDir)
+	for d := 1; d < versionNumber; d++ {
+		oldDir := gitwalkerDir + fmt.Sprintf("%04d", d-1)
+		patchName := patchesDir + fmt.Sprintf("%04d%04d.patch", d-1, d)
+		fmt.Printf("Start Patching %04d~%04d\n", d-1, d)
+		patchForDirectory(oldDir, patchName, bs)
+	}
+}
+
 func DyaicPatch(loc string, bs bool) {
 	if loc == "" {
 		loc = TempLocation

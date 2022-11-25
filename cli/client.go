@@ -93,6 +93,7 @@ var clientCmd = &cli.Command{
 		WithCategory("data", clientCommitCmd),
 		WithCategory("data", clientDiffCmd),
 		WithCategory("data", clientGitwalkerCmd),
+		WithCategory("data", clientPatchGitwalkerCmd),
 		WithCategory("data", clientPatchCmd),
 		WithCategory("data", clientPrintCmd),
 		WithCategory("data", clientWatchCmd),
@@ -2116,6 +2117,16 @@ var clientGitwalkerCmd = &cli.Command{
 	Flags: []cli.Flag{},
 	Action: func(cctx *cli.Context) error {
 		dyaic.DyaicGitwalker()
+		return nil
+	},
+}
+
+var clientPatchGitwalkerCmd = &cli.Command{
+	Name:  "patchgitwalker",
+	Usage: "Apply patches at ~/.dyaic/patches/ to repo versions at ~/.gitwalker/",
+	Flags: []cli.Flag{},
+	Action: func(cctx *cli.Context) error {
+		dyaic.DyaicPatchGitwalker(cctx.Bool("bs"))
 		return nil
 	},
 }
