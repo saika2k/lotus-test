@@ -49,7 +49,9 @@ func patch(old, new, patchName string, clean bool) {
 
 // NOTICE: currently this function is only designed to apply patches in "~/.dyaic/patches/". To support patches in any directories, genPatchForDirectory needs to be modified together.
 func patchForDirectory(old, patchName string, clean bool) {
-	cmd := exec.Command("patch", "-d", old, "-s", "-p5", "<", patchName)
+	cmdString := fmt.Sprint("patch -d ", old, " -s -p5 < ", patchName)
+	cmd := exec.Command("bash", "-c", cmdString)
+	fmt.Println(cmd.String())
 	err := cmd.Run()
 	if err != nil {
 		log.Panic(err)
