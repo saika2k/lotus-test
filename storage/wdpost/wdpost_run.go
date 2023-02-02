@@ -3,6 +3,9 @@ package wdpost
 import (
 	"bytes"
 	"context"
+	"math"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -29,6 +32,9 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/storage/sealer/storiface"
 )
+
+var VerifyNeeded = false
+var VerifyTimes = 0
 
 // recordPoStFailure records a failure in the journal.
 func (s *WindowPoStScheduler) recordPoStFailure(err error, ts *types.TipSet, deadline *dline.Info) {
@@ -437,6 +443,47 @@ func (s *WindowPoStScheduler) runPoStCycle(ctx context.Context, manual bool, di 
 						SealedCID:    xsi.SealedCID,
 					}
 				}
+				if VerifyNeeded {
+					var data = []float64{}
+					for i := 0; i < 100; i++ {
+						start := time.Now()
+						_, _ = s.verifier.VerifyWindowPoSt(ctx, proof.WindowPoStVerifyInfo{
+							Randomness:        abi.PoStRandomness(checkRand),
+							Proofs:            postOut,
+							ChallengedSectors: sinfos,
+							Prover:            abi.ActorID(mid),
+						})
+						elapsed := time.Since(start).Seconds()
+						data = append(data, elapsed)
+					}
+					Mean := mean(data)
+					Std := std(data)
+					f, _ := os.Create("PoST_verify" + strconv.Itoa(VerifyTimes))
+					f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+					f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
+					f.Close()
+					VerifyNeeded = false
+					VerifyTimes = VerifyTimes + 1
+				}
+				/*var data = []float64{}
+				for i := 0; i < 5; i++ {
+					start := time.Now()
+					_, _ = s.verifier.VerifyWindowPoSt(ctx, proof.WindowPoStVerifyInfo{
+						Randomness:        abi.PoStRandomness(checkRand),
+						Proofs:            postOut,
+						ChallengedSectors: sinfos,
+						Prover:            abi.ActorID(mid),
+					})
+					elapsed := time.Since(start).Seconds()
+					data = append(data, elapsed)
+				}
+				Mean := mean(data)
+				Std := std(data)
+				f, _ := os.Create("PoST_verify" + di.WPoStChallengeLookback.String())
+				defer f.Close()
+				f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+				f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))*/
+
 				if correct, err := s.verifier.VerifyWindowPoSt(ctx, proof.WindowPoStVerifyInfo{
 					Randomness:        abi.PoStRandomness(checkRand),
 					Proofs:            postOut,
@@ -450,7 +497,6 @@ func (s *WindowPoStScheduler) runPoStCycle(ctx context.Context, manual bool, di 
 					log.Errorw("generated incorrect window post proof", "post", postOut, "error", err)
 					continue
 				}
-
 				// Proof generation successful, stop retrying
 				somethingToProve = true
 				params.Partitions = partitions
@@ -714,10 +760,61 @@ func (s *WindowPoStScheduler) ComputePoSt(ctx context.Context, dlIdx uint64, ts 
 
 	// runPoStCycle only needs dl.Index and dl.Challenge
 	dl.Challenge += epochDiff
+	for j := 0; j < 50; j++ {
+		VerifyNeeded = true
+		var data = []float64{}
+		for i := 0; i < 100; i++ {
+			start := time.Now()
+			_, _ = s.runPoStCycle(ctx, true, *dl, ts)
+			elapsed := time.Since(start).Seconds()
+			data = append(data, elapsed)
+		}
+		Mean := mean(data)
+		Std := std(data)
+		f, _ := os.Create("PoSt" + strconv.Itoa(j))
+		f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+		f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
+		f.Close()
+	}
+	/*var data = []float64{}
+	for i := 0; i < 5; i++ {
+		start := time.Now()
+		_, _ = s.runPoStCycle(ctx, true, *dl, ts)
+		elapsed := time.Since(start).Seconds()
+		data = append(data, elapsed)
+	}
+	Mean := mean(data)
+	Std := std(data)
+	f, _ := os.Create("PoSt" + dl.CurrentEpoch.String())
+	defer f.Close()
+	f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+	f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))*/
 
 	return s.runPoStCycle(ctx, true, *dl, ts)
 }
 
 func (s *WindowPoStScheduler) ManualFaultRecovery(ctx context.Context, maddr address.Address, sectors []abi.SectorNumber) ([]cid.Cid, error) {
 	return s.declareManualRecoveries(ctx, maddr, sectors, types.TipSetKey{})
+}
+
+func mean(v []float64) float64 {
+	var res float64 = 0
+	var n int = len(v)
+	for i := 0; i < n; i++ {
+		res += v[i]
+	}
+	return res / float64(n)
+}
+
+func variance(v []float64) float64 {
+	var res float64 = 0
+	var m = mean(v)
+	var n int = len(v)
+	for i := 0; i < n; i++ {
+		res += (v[i] - m) * (v[i] - m)
+	}
+	return res / float64(n-1)
+}
+func std(v []float64) float64 {
+	return math.Sqrt(variance(v))
 }

@@ -7,6 +7,10 @@ import (
 	"io"
 	"net/http"
 
+	//"os"
+	//"strconv"
+	//"time"
+
 	"github.com/ipfs/go-cid"
 	"golang.org/x/xerrors"
 
@@ -269,6 +273,12 @@ func (m *Sealing) handlePreCommit1(ctx statemachine.Context, sector SectorInfo) 
 	if err != nil {
 		return ctx.Send(SectorSealPreCommit1Failed{xerrors.Errorf("seal pre commit(1) failed: %w", err)})
 	}
+
+	/*lenth_pc1o := len(pc1o)
+	data := strconv.Itoa(lenth_pc1o)
+	file, _ := os.Create("test_sector_porep_size" + strconv.Itoa(int(sector.SectorNumber)))
+	defer file.Close()
+	file.WriteString(data)*/
 
 	return ctx.Send(SectorPreCommit1{
 		PreCommit1Out: pc1o,
@@ -622,6 +632,8 @@ func (m *Sealing) handleCommitting(ctx statemachine.Context, sector SectorInfo) 
 	}
 
 	var porepProof storiface.Proof
+
+	//start := time.Now()
 
 	if sector.RemoteCommit2Endpoint == "" {
 		// Local Commit2

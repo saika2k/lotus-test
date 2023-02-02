@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/filecoin-project/lotus/lib/dyaic"
 	"io"
 	"math"
 	"math/rand"
@@ -19,6 +18,8 @@ import (
 	"sync/atomic"
 	"text/tabwriter"
 	"time"
+
+	"github.com/filecoin-project/lotus/lib/dyaic"
 
 	tm "github.com/buger/goterm"
 	"github.com/chzyer/readline"
@@ -516,6 +517,11 @@ The minimum value is 518400 (6 months).`,
 		}
 
 		afmt.Println(encoder.Encode(*proposal))
+
+		t := time.Now()
+		file, _ := os.Create("deal_start_" + t.String())
+		defer file.Close()
+		file.WriteString("deal start, timestrap: " + t.String())
 
 		return nil
 	},

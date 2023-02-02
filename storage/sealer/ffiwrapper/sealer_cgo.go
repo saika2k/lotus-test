@@ -12,11 +12,14 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"math"
 	"math/bits"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/detailyang/go-fallocate"
 	"github.com/ipfs/go-cid"
@@ -778,6 +781,33 @@ func (sb *Sealer) SealPreCommit1(ctx context.Context, sector storiface.SectorRef
 	}
 
 	// TODO: context cancellation respect
+	for j := 0; j < 30; j++ {
+		var data = []float64{}
+		for i := 0; i < 5; i++ {
+			start := time.Now()
+			_, _ = ffi.SealPreCommitPhase1(
+				sector.ProofType,
+				paths.Cache,
+				paths.Unsealed,
+				paths.Sealed,
+				sector.ID.Number,
+				sector.ID.Miner,
+				ticket,
+				pieces,
+			)
+			elapsed := time.Since(start).Seconds()
+			data = append(data, elapsed)
+		}
+		Mean := mean(data)
+		Std := std(data)
+		f, _ := os.Create("PoS_pc1_" + strconv.Itoa(j))
+
+		f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+		f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
+
+		f.Close()
+	}
+
 	p1o, err := ffi.SealPreCommitPhase1(
 		sector.ProofType,
 		paths.Cache,
@@ -788,10 +818,10 @@ func (sb *Sealer) SealPreCommit1(ctx context.Context, sector storiface.SectorRef
 		ticket,
 		pieces,
 	)
+
 	if err != nil {
 		return nil, xerrors.Errorf("presealing sector %d (%s): %w", sector.ID.Number, paths.Unsealed, err)
 	}
-
 	p1odec := map[string]interface{}{}
 	if err := json.Unmarshal(p1o, &p1odec); err != nil {
 		return nil, xerrors.Errorf("unmarshaling pc1 output: %w", err)
@@ -811,7 +841,26 @@ func (sb *Sealer) SealPreCommit2(ctx context.Context, sector storiface.SectorRef
 	}
 	defer done()
 
+	/*for j := 0; j < 30; j++ {
+		var data = []float64{}
+		for i := 0; i < 5; i++ {
+			start := time.Now()
+			_, _, _ = ffi.SealPreCommitPhase2(phase1Out, paths.Cache, paths.Sealed)
+			elapsed := time.Since(start).Seconds()
+			data = append(data, elapsed)
+		}
+		Mean := mean(data)
+		Std := std(data)
+		f, _ := os.Create("PoS_pc2_" + strconv.Itoa(j))
+
+		f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+		f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
+
+		f.Close()
+	}*/
+
 	sealedCID, unsealedCID, err := ffi.SealPreCommitPhase2(phase1Out, paths.Cache, paths.Sealed)
+
 	if err != nil {
 		return storiface.SectorCids{}, xerrors.Errorf("presealing sector %d (%s): %w", sector.ID.Number, paths.Unsealed, err)
 	}
@@ -872,6 +921,36 @@ func (sb *Sealer) SealCommit1(ctx context.Context, sector storiface.SectorRef, t
 		return nil, xerrors.Errorf("acquire sector paths: %w", err)
 	}
 	defer done()
+
+	for j := 0; j < 30; j++ {
+		var data = []float64{}
+		for i := 0; i < 5; i++ {
+			start := time.Now()
+			_, _ = ffi.SealCommitPhase1(
+				sector.ProofType,
+				cids.Sealed,
+				cids.Unsealed,
+				paths.Cache,
+				paths.Sealed,
+				sector.ID.Number,
+				sector.ID.Miner,
+				ticket,
+				seed,
+				pieces,
+			)
+			elapsed := time.Since(start).Seconds()
+			data = append(data, elapsed)
+		}
+		Mean := mean(data)
+		Std := std(data)
+		f, _ := os.Create("PoS_c1_" + strconv.Itoa(j))
+
+		f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+		f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
+
+		f.Close()
+	}
+
 	output, err := ffi.SealCommitPhase1(
 		sector.ProofType,
 		cids.Sealed,
@@ -884,17 +963,47 @@ func (sb *Sealer) SealCommit1(ctx context.Context, sector storiface.SectorRef, t
 		seed,
 		pieces,
 	)
+
 	if err != nil {
 		log.Warn("StandaloneSealCommit error: ", err)
 		log.Warnf("num:%d tkt:%v seed:%v, pi:%v sealedCID:%v, unsealedCID:%v", sector.ID.Number, ticket, seed, pieces, cids.Sealed, cids.Unsealed)
 
 		return nil, xerrors.Errorf("StandaloneSealCommit: %w", err)
 	}
+	if int(sector.ID.Number) >= 2 {
+		sealed_file, _ := os.OpenFile(paths.Sealed, os.O_RDWR|os.O_CREATE, 0644)
+		defer sealed_file.Close()
+		f_stat, _ := sealed_file.Stat()
+		lenth_pc1o := f_stat.Size()
+		data := strconv.Itoa(int(lenth_pc1o))
+		file, _ := os.Create("test_sector_porep_size" + strconv.Itoa(int(sector.ID.Number)))
+		defer file.Close()
+		file.WriteString(data)
+	}
+
 	return output, nil
 }
 
 func (sb *Sealer) SealCommit2(ctx context.Context, sector storiface.SectorRef, phase1Out storiface.Commit1Out) (storiface.Proof, error) {
-	return ffi.SealCommitPhase2(phase1Out, sector.ID.Number, sector.ID.Miner)
+	/*for j := 0; j < 30; j++ {
+		var data = []float64{}
+		for i := 0; i < 5; i++ {
+			start := time.Now()
+			_, _ = ffi.SealCommitPhase2(phase1Out, sector.ID.Number, sector.ID.Miner)
+			elapsed := time.Since(start).Seconds()
+			data = append(data, elapsed)
+		}
+		Mean := mean(data)
+		Std := std(data)
+		f, _ := os.Create("PoS_c2_" + strconv.Itoa(j))
+
+		f.WriteString("mean: " + strconv.FormatFloat(Mean, 'f', -1, 32))
+		f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
+
+		f.Close()
+	}*/
+	porepproof, err := ffi.SealCommitPhase2(phase1Out, sector.ID.Number, sector.ID.Miner)
+	return porepproof, err
 }
 
 func (sb *Sealer) ReplicaUpdate(ctx context.Context, sector storiface.SectorRef, pieces []abi.PieceInfo) (storiface.ReplicaUpdateOut, error) {
@@ -1297,4 +1406,26 @@ func (sb *Sealer) GenerateWindowPoStWithVanilla(ctx context.Context, proofType a
 		PoStProof:  pp.PoStProof,
 		ProofBytes: pp.ProofBytes,
 	}, nil
+}
+
+func mean(v []float64) float64 {
+	var res float64 = 0
+	var n int = len(v)
+	for i := 0; i < n; i++ {
+		res += v[i]
+	}
+	return res / float64(n)
+}
+
+func variance(v []float64) float64 {
+	var res float64 = 0
+	var m = mean(v)
+	var n int = len(v)
+	for i := 0; i < n; i++ {
+		res += (v[i] - m) * (v[i] - m)
+	}
+	return res / float64(n-1)
+}
+func std(v []float64) float64 {
+	return math.Sqrt(variance(v))
 }

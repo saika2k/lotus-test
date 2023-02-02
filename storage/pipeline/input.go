@@ -2,6 +2,7 @@ package sealing
 
 import (
 	"context"
+	"os"
 	"sort"
 	"time"
 
@@ -159,6 +160,10 @@ func (m *Sealing) maybeStartSealing(ctx statemachine.Context, sector SectorInfo,
 }
 
 func (m *Sealing) handleAddPiece(ctx statemachine.Context, sector SectorInfo) error {
+	t := time.Now()
+	file, _ := os.Create("deal_get_" + t.String())
+	defer file.Close()
+	file.WriteString("deal get, timestrap: " + t.String())
 	ssize, err := sector.SectorType.SectorSize()
 	if err != nil {
 		return err
