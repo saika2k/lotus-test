@@ -502,8 +502,16 @@ The minimum value is 518400 (6 months).`,
 			if ref.TransferType != storagemarket.TTManual || price.Int64() != 0 {
 				return xerrors.New("when manual-stateless-deal is enabled, you must also provide a 'price' of 0 and specify 'manual-piece-cid' and 'manual-piece-size'")
 			}
+			t := time.Now()
+			file, _ := os.Create("deal_start_" + t.String())
+			defer file.Close()
+			file.WriteString("deal start, timestrap: " + t.String())
 			proposal, err = api.ClientStatelessDeal(ctx, sdParams)
 		} else {
+			t := time.Now()
+			file, _ := os.Create("deal_start_" + t.String())
+			defer file.Close()
+			file.WriteString("deal start, timestrap: " + t.String())
 			proposal, err = api.ClientStartDeal(ctx, sdParams)
 		}
 
@@ -517,11 +525,6 @@ The minimum value is 518400 (6 months).`,
 		}
 
 		afmt.Println(encoder.Encode(*proposal))
-
-		t := time.Now()
-		file, _ := os.Create("deal_start_" + t.String())
-		defer file.Close()
-		file.WriteString("deal start, timestrap: " + t.String())
 
 		return nil
 	},
