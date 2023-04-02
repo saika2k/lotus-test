@@ -7,9 +7,9 @@ import (
 	"io"
 	"net/http"
 
-	//"os"
+	"os"
 	//"strconv"
-	//"time"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"golang.org/x/xerrors"
@@ -858,6 +858,11 @@ func (m *Sealing) handleCommitWait(ctx statemachine.Context, sector SectorInfo) 
 	if si == nil {
 		return ctx.Send(SectorCommitFailed{xerrors.Errorf("proof validation failed, sector not found in sector set after cron")})
 	}
+
+	filepath := "deal_complete" + time.Now().String()
+	f, _ := os.Create(filepath)
+	f.WriteString(mw.Height)
+	f.Close()
 
 	return ctx.Send(SectorProving{})
 }
