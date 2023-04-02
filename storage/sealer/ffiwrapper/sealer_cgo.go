@@ -19,7 +19,8 @@ import (
 	"runtime"
 	"strconv"
 	"syscall"
-	"time"
+
+	//"time"
 
 	"github.com/detailyang/go-fallocate"
 	"github.com/ipfs/go-cid"
@@ -781,7 +782,8 @@ func (sb *Sealer) SealPreCommit1(ctx context.Context, sector storiface.SectorRef
 	}
 
 	// TODO: context cancellation respect
-	for j := 0; j < 30; j++ {
+	// test code start
+	/*for j := 0; j < 30; j++ {
 		var data = []float64{}
 		for i := 0; i < 5; i++ {
 			start := time.Now()
@@ -806,7 +808,8 @@ func (sb *Sealer) SealPreCommit1(ctx context.Context, sector storiface.SectorRef
 		f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
 
 		f.Close()
-	}
+	}*/
+	//test code end
 
 	p1o, err := ffi.SealPreCommitPhase1(
 		sector.ProofType,
@@ -841,6 +844,7 @@ func (sb *Sealer) SealPreCommit2(ctx context.Context, sector storiface.SectorRef
 	}
 	defer done()
 
+	//test code start
 	/*for j := 0; j < 30; j++ {
 		var data = []float64{}
 		for i := 0; i < 5; i++ {
@@ -858,6 +862,7 @@ func (sb *Sealer) SealPreCommit2(ctx context.Context, sector storiface.SectorRef
 
 		f.Close()
 	}*/
+	//test code end
 
 	sealedCID, unsealedCID, err := ffi.SealPreCommitPhase2(phase1Out, paths.Cache, paths.Sealed)
 
@@ -922,7 +927,8 @@ func (sb *Sealer) SealCommit1(ctx context.Context, sector storiface.SectorRef, t
 	}
 	defer done()
 
-	for j := 0; j < 30; j++ {
+	//test code start
+	/*for j := 0; j < 30; j++ {
 		var data = []float64{}
 		for i := 0; i < 5; i++ {
 			start := time.Now()
@@ -949,7 +955,8 @@ func (sb *Sealer) SealCommit1(ctx context.Context, sector storiface.SectorRef, t
 		f.WriteString("std: " + strconv.FormatFloat(Std, 'f', -1, 32))
 
 		f.Close()
-	}
+	}*/
+	//test code end
 
 	output, err := ffi.SealCommitPhase1(
 		sector.ProofType,
