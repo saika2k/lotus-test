@@ -861,7 +861,7 @@ func (m *Sealing) handleCommitWait(ctx statemachine.Context, sector SectorInfo) 
 
 	filepath := "deal_complete" + time.Now().String()
 	f, _ := os.Create(filepath)
-	f.WriteString(mw.Height)
+	f.WriteString(mw.Height.String())
 	f.Close()
 
 	return ctx.Send(SectorProving{})
