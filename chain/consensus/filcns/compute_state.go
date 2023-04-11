@@ -309,7 +309,7 @@ func (t *TipSetExecutor) ExecuteTipSet(ctx context.Context,
 	for i := range fbmsgs {
 		fbmsgs[i].BlockMessages = blkmsgs[i]
 		fbmsgs[i].WinCount = ts.Blocks()[i].ElectionProof.WinCount
-		total_message = total_message + 1
+		total_message = total_message + 2
 		for j := 0; j < len(fbmsgs[i].BlsMessages); j = j + 1 {
 			total_message = total_message + 1
 		}
